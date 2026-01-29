@@ -39,13 +39,30 @@ android {
         versionName = flutter.versionName
     }
 
-    signingConfigs {
+signingConfigs {
     if (keystorePropertiesFile.exists()) {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String
+
+            val storeFilePath = keystoreProperties.getProperty("storeFile")
+            val storePasswordValue = keystoreProperties.getProperty("storePassword")
+            val keyAliasValue = keystoreProperties.getProperty("keyAlias")
+            val keyPasswordValue = keystoreProperties.getProperty("keyPassword")
+
+            // 任何一个为空，直接不配置 signing（避免 Kotlin cast 崩）
+            if (
+                storeFilePath == null ||
+                storePasswordValue == null ||
+                keyAliasValue == null ||
+                keyPasswordValue == null
+            ) {
+                return@create
+            }
+
+            storeFile = file(storeFilePath)
+            storePassword = storePasswordValue
+            keyAlias = keyAliasValue
+            keyPassword = keyPasswordValue
+
             isV1SigningEnabled = true
             isV2SigningEnabled = true
         }
@@ -59,7 +76,7 @@ buildTypes {
 
     release {
         if (keystorePropertiesFile.exists()) {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.findByName("release")
         }
         isMinifyEnabled = true
         isShrinkResources = true
@@ -69,6 +86,7 @@ buildTypes {
         )
     }
 }
+
 
 
 flutter {
