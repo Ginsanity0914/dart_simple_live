@@ -40,6 +40,7 @@ android {
     }
 
     signingConfigs {
+    if (keystorePropertiesFile.exists()) {
         create("release") {
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
@@ -49,21 +50,26 @@ android {
             isV2SigningEnabled = true
         }
     }
+}
 
-    buildTypes {
-        release {
-            // Signing with the debug keys for now, so `flutter run --release` works.
+buildTypes {
+    debug {
+        // ✅ Debug 使用系统默认 debug keystore
+    }
+
+    release {
+        if (keystorePropertiesFile.exists()) {
             signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                // Default file with automatically generated optimization rules.
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
+        isMinifyEnabled = true
+        isShrinkResources = true
+        proguardFiles(
+            getDefaultProguardFile("proguard-android-optimize.txt"),
+            "proguard-rules.pro"
+        )
     }
 }
+
 
 flutter {
     source = "../.."
